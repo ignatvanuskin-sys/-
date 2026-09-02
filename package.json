@@ -8,15 +8,19 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('no tests yet')\"",
+    "test": "vitest run --reporter=verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
+    "@electric-sql/pglite": "^0.5.8",
     "@neondatabase/serverless": "^1.1.0",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
@@ -27,6 +31,7 @@
     "next": "15.3.5",
     "nodemailer": "^9.1.0",
     "pg": "^8.23.0",
+    "pg-mem": "^3.0.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.6.0",
@@ -36,6 +41,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",
@@ -47,8 +54,10 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
+    "jsdom": "^30.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }

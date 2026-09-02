@@ -17,17 +17,17 @@ export const metadata: Metadata = {
   description: "Персональная панель email-рассылок",
 };
 
+import { ToasterProvider } from "@/components/ui/toaster";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="ru">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ToasterProvider>{children}</ToasterProvider>
       </body>
     </html>
   );

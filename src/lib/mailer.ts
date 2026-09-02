@@ -26,6 +26,29 @@ export function createTransporter(cfg: MailboxConfig) {
   });
 }
 
+// Free Ethereal test account — no real Gmail needed, 100% free
+// https://ethereal.email — nodemailer creates ad-hoc SMTP creds
+export async function createEtherealTestAccount(): Promise<{
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+}> {
+  const account = await nodemailer.createTestAccount();
+  return {
+    host: account.smtp.host,
+    port: account.smtp.port,
+    secure: account.smtp.secure,
+    user: account.user,
+    pass: account.pass,
+  };
+}
+
+export function isEtherealHost(host: string) {
+  return host.includes("ethereal.email");
+}
+
 export async function sendMail(opts: {
   mailbox: MailboxConfig;
   to: string;
@@ -45,7 +68,7 @@ export async function sendMail(opts: {
 
   const htmlWithFooter = `${opts.html}<br/><br/><hr/><p style="font-size:12px;color:#888;">Чтобы отписаться, перейдите по ссылке: <a href="${unsubscribeUrl}">отписаться</a>${footerAddress ? `<br/>${footerAddress}` : ""}</p>`;
 
-  const info = await transporter.sendMail({
+  const info: any = await transporter.sendMail({
     from: `"${opts.mailbox.fromName}" <${opts.mailbox.fromEmail}>`,
     to: opts.to,
     replyTo: opts.mailbox.replyTo || undefined,
@@ -53,6 +76,13 @@ export async function sendMail(opts: {
     html: htmlWithFooter,
     text: opts.text,
   });
+  // For Ethereal, log preview URL (free debugging)
+  if (isEtherealHost(opts.mailbox.smtpHost)) {
+    const preview = nodemailer.getTestMessageUrl(info);
+    if (preview) console.log(`[ethereal] Preview: ${preview} (free test mailbox, not real inbox)`);
+    // Attach preview to info for API consumer
+    info.etherealPreviewUrl = preview;
+  }
   return info;
 }
 

@@ -24,7 +24,7 @@ export function encrypt(text: string): string {
 export function decrypt(payload: string): string {
   const key = getKey();
   const [ivB64, tagB64, encB64] = payload.split(":");
-  if (!ivB64 || !tagB64 || !encB64) throw new Error("Invalid encrypted payload");
+  if (!ivB64 || !tagB64 || encB64 === undefined) throw new Error("Invalid encrypted payload");
   const iv = Buffer.from(ivB64, "base64");
   const tag = Buffer.from(tagB64, "base64");
   const enc = Buffer.from(encB64, "base64");

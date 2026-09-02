@@ -135,7 +135,10 @@ async function main() {
     const orig = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
     const dbmod = await import("../src/lib/db");
-    ok(dbmod.isDbConfigured() === false, "isDbConfigured false when missing");
+    // Free mode: isDbConfigured now true even without DATABASE_URL (in-memory fallback)
+    ok(dbmod.isDbConfigured() === true, "isDbConfigured true even without DATABASE_URL (free memory fallback)");
+    ok(dbmod.getDbType() === "memory", "getDbType is memory when no DATABASE_URL");
+    ok(dbmod.isUsingMemoryDb() === true, "isUsingMemoryDb true");
     if (orig) process.env.DATABASE_URL = orig;
     else delete process.env.DATABASE_URL;
   }

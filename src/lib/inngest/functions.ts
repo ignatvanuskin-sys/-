@@ -1,7 +1,7 @@
 import { inngest } from "./client";
 import { db } from "../db";
 import { campaigns, campaignRecipients, recipients, suppressionList, mailboxes, templates } from "../schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and } from "@/lib/db";
 import { parseSpintax } from "../spintax";
 import { renderPlaceholders } from "../placeholders";
 import { paraphraseWithRetry, mockParaphrase } from "../ai";

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { suppressionList, campaignRecipients, recipients } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

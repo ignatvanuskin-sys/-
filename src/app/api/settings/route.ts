@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { globalSettings } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db";
 
 export async function GET() {
   if (!isDbConfigured()) return NextResponse.json({ settings: { stopAll: false, footerAddress: "" } });

@@ -3,28 +3,26 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { neon } from "@neondatabase/serverless";
 import { Pool } from "pg";
 import * as schema from "./schema";
-
-// We support both Neon (serverless) and regular pg.
-// If DATABASE_URL is missing, we return a mock that throws gracefully – but build must succeed.
-// In production, DATABASE_URL must be set, otherwise UI will show a setup warning.
+import { memoryDb, eq as memEq, and as memAnd, desc as memDesc } from "./db-memory";
+import { eq as drizzleEq, and as drizzleAnd, desc as drizzleDesc } from "drizzle-orm";
 
 let dbInstance: any = null;
+let usingMemory = false;
+
+function getDbType(): "neon" | "pg" | "memory" {
+  if (!process.env.DATABASE_URL) return "memory";
+  if (process.env.DATABASE_URL.includes("neon.tech")) return "neon";
+  return "pg";
+}
 
 function getDb() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    // Return a proxy that throws on query but allows import
-    return new Proxy(
-      {},
-      {
-        get() {
-          throw new Error("DATABASE_URL is not set. Please configure it in .env");
-        },
-      }
-    ) as any;
+  const type = getDbType();
+  if (type === "memory") {
+    usingMemory = true;
+    return memoryDb;
   }
   if (dbInstance) return dbInstance;
-  // Neon URLs contain "neon.tech"
+  const url = process.env.DATABASE_URL!;
   if (url.includes("neon.tech")) {
     const sql = neon(url);
     dbInstance = drizzleNeon(sql as any, { schema } as any);
@@ -35,19 +33,29 @@ function getDb() {
   return dbInstance;
 }
 
-// Lazy proxy so `import { db } ...` works at build time without DATABASE_URL
-export const db: any = new Proxy(
-  {},
-  {
-    get(_target, prop) {
-      const real = getDb();
-      const val = real[prop];
-      if (typeof val === "function") return val.bind(real);
-      return val;
-    },
-  }
-);
+export const db: any = new Proxy({} as any, {
+  get(_t, prop) {
+    const real = getDb();
+    const v = real[prop as string];
+    if (typeof v === "function") return v.bind(real);
+    return v;
+  },
+});
 
-export function isDbConfigured() {
-  return !!process.env.DATABASE_URL;
+export function isDbConfigured() { return true; }
+export function isUsingMemoryDb() { return getDbType() === "memory" || usingMemory; }
+export { getDbType };
+
+// Wrapper eq/and/desc that work for both memory and pg
+export function eq(column: any, value: any) {
+  if (getDbType() === "memory") return memEq(column, value);
+  return drizzleEq(column, value);
+}
+export function and(...conds: any[]) {
+  if (getDbType() === "memory") return memAnd(...conds);
+  return drizzleAnd(...conds);
+}
+export function desc(column: any) {
+  if (getDbType() === "memory") return memDesc(column);
+  return drizzleDesc(column);
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { recipients } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db";
 import { isValidEmail } from "@/lib/utils";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

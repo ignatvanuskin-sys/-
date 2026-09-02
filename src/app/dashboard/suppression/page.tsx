@@ -23,20 +23,34 @@ export default function SuppressionPage() {
   }
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Suppression list (отписки)</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Отписки — suppression list</h1>
+        <p className="text-sm text-zinc-500 mt-1">Каждый клик «отписаться» в письме попадает сюда. Будущие кампании автоматически пропускают эти адреса (статус <code className="bg-zinc-100 px-1 rounded">skipped</code>). Соответствует требованию ТЗ §6.</p>
+      </div>
       <Card>
-        <CardHeader><CardTitle>Добавить вручную</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Добавить вручную</CardTitle>
+          <p className="text-xs text-zinc-500">Например, если клиент попросил по телефону не писать — добавьте его email, и он не получит больше рассылок.</p>
+        </CardHeader>
         <CardContent className="flex gap-2">
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" />
-          <Button onClick={add}>Добавить</Button>
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" onKeyDown={(e) => e.key === "Enter" && add()} />
+          <Button onClick={add} disabled={!email.includes("@")}>Добавить</Button>
         </CardContent>
       </Card>
       <Card>
-        <CardHeader><CardTitle>Список ({list.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Список ({list.length}) {list.length > 0 && <span className="text-xs font-normal text-zinc-500">— автоматически пополняется из писем</span>}</CardTitle></CardHeader>
         <CardContent>
-          {list.length===0? <p className="text-sm text-zinc-500">Пусто</p> :
-            <table className="w-full text-sm"><thead><tr className="text-left text-zinc-500"><th className="p-2">Email</th><th className="p-2">Причина</th><th className="p-2">Дата</th><th></th></tr></thead><tbody>{list.map((r:any)=><tr key={r.id} className="border-t"><td className="p-2">{r.email}</td><td className="p-2">{r.reason}</td><td className="p-2">{new Date(r.createdAt).toLocaleString()}</td><td className="p-2"><Button variant="ghost" size="sm" onClick={()=>del(r.email)}>Удалить</Button></td></tr>)}</tbody></table>
-          }
+          {list.length===0? (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">📭</div>
+              <p className="text-sm text-zinc-600">Пока пусто — никто не отписался</p>
+              <p className="text-xs text-zinc-500 mt-1">Ссылка отписки добавляется в каждое письмо автоматически (см. отправленные письма).</p>
+            </div>
+          ) : (
+            <div className="overflow-auto rounded border">
+              <table className="w-full text-sm"><thead className="bg-zinc-50"><tr className="text-left text-zinc-500"><th className="p-2">Email</th><th className="p-2">Причина</th><th className="p-2">Дата</th><th></th></tr></thead><tbody>{list.map((r:any)=><tr key={r.id} className="border-t hover:bg-zinc-50"><td className="p-2 font-mono text-xs">{r.email}</td><td className="p-2 text-xs">{r.reason}</td><td className="p-2 text-xs">{new Date(r.createdAt).toLocaleString("ru-RU")}</td><td className="p-2"><Button variant="ghost" size="sm" onClick={()=>del(r.email)}>Удалить</Button></td></tr>)}</tbody></table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

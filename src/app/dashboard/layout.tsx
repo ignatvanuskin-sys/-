@@ -1,18 +1,8 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySessionToken } from "@/lib/auth";
 import LogoutButton from "./logout-button";
-
-const nav = [
-  { href: "/dashboard", label: "Дашборд" },
-  { href: "/dashboard/lists", label: "Списки" },
-  { href: "/dashboard/templates", label: "Шаблоны" },
-  { href: "/dashboard/campaigns", label: "Кампании" },
-  { href: "/dashboard/mailbox", label: "Почтовый ящик" },
-  { href: "/dashboard/suppression", label: "Отписки" },
-  { href: "/dashboard/settings", label: "Настройки" },
-];
+import { SidebarNav, MobileNav } from "./nav";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -22,35 +12,28 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-zinc-50 flex">
-      <aside className="w-64 bg-white border-r hidden md:flex flex-col">
+      <aside className="w-64 bg-white border-r hidden md:flex flex-col sticky top-0 h-screen">
         <div className="p-6 border-b">
-          <h1 className="font-bold text-lg">Email Panel</h1>
-          <p className="text-xs text-zinc-500 truncate">{sess.email}</p>
+          <h1 className="font-bold text-lg tracking-tight">Email Panel</h1>
+          <p className="text-xs text-zinc-500 truncate mt-1">{sess.email}</p>
+          <p className="text-[11px] text-zinc-400 mt-1">Персональная панель • 1 пользователь</p>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="block px-3 py-2 rounded-md text-sm hover:bg-zinc-100">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 border-t">
+        <SidebarNav />
+        <div className="p-4 border-t bg-zinc-50/50">
+          <div className="text-[11px] text-zinc-500 mb-2">Вошли как <b className="text-zinc-700">{sess.email}</b></div>
           <LogoutButton />
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden bg-white border-b p-4 flex justify-between items-center">
+        <header className="md:hidden bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
           <span className="font-bold">Email Panel</span>
           <LogoutButton />
         </header>
-        <nav className="md:hidden bg-white border-b p-2 flex gap-2 overflow-auto">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="px-3 py-1 text-sm bg-zinc-100 rounded whitespace-nowrap">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <main className="p-6 flex-1">{children}</main>
+        <MobileNav />
+        <main className="p-4 md:p-6 flex-1 max-w-6xl w-full mx-auto">{children}</main>
+        <footer className="p-4 text-center text-[11px] text-zinc-400 border-t bg-white">
+          Email Panel • AI-уникализация • <span className="hidden sm:inline">Отписка • Inngest • Neon Postgres • </span>Сделано для лидгена
+        </footer>
       </div>
     </div>
   );

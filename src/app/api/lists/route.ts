@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { recipientLists, recipients, suppressionList } from "@/lib/schema";
 import { parseRecipientsInput } from "@/lib/recipients-parse";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq } from "@/lib/db";
 
 export async function GET() {
   if (!isDbConfigured()) return NextResponse.json({ lists: [] });

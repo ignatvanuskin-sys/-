@@ -1,4 +1,4 @@
-import { db, isDbConfigured } from "@/lib/db";
+import { db, getDbType } from "@/lib/db";
 import { campaigns, campaignRecipients, recipientLists, templates } from "@/lib/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
@@ -7,21 +7,14 @@ import { Button } from "@/components/ui/button";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  if (!isDbConfigured()) {
-    return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Дашборд</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>DATABASE_URL не настроен</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-zinc-600">Заполните DATABASE_URL в .env и перезапустите сервер. Пока используется заглушка.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const dbType = getDbType();
+  const memoryBanner = dbType === "memory" ? (
+    <Card className="border-amber-200 bg-amber-50">
+      <CardContent className="p-4 text-sm">
+        <b>🆓 Бесплатный режим — in-memory DB (pg-mem)</b> — данные хранятся в памяти и пропадут после перезапуска. Для продакшена задайте <code>DATABASE_URL</code> (Neon — бесплатный тариф, 0.5GB). Всё остальное (SMTP Ethereal, AI-mock) уже бесплатно.
+      </CardContent>
+    </Card>
+  ) : null;
   const camps = await db.select().from(campaigns);
   const lists = await db.select().from(recipientLists);
   const tmpls = await db.select().from(templates);
@@ -38,14 +31,44 @@ export default async function DashboardPage() {
   const errors = allCrs.filter((r: typeof allCrs[number]) => r.status === "error").length;
   const queued = allCrs.filter((r: typeof allCrs[number]) => r.status === "queued").length;
 
+  const isEmpty = camps.length === 0 && lists.length === 0 && tmpls.length === 0;
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Дашборд</h1>
+      {memoryBanner}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Дашборд</h1>
+          <p className="text-sm text-zinc-500 mt-1">Отслеживайте прогресс рассылок и быстро переходите к созданию</p>
+        </div>
         <Link href="/dashboard/campaigns">
-          <Button>Создать кампанию</Button>
+          <Button size="lg">Создать кампанию →</Button>
         </Link>
       </div>
+
+      {isEmpty && (
+        <Card className="border-dashed bg-white">
+          <CardHeader>
+            <CardTitle className="text-base">👋 Добро пожаловать — 3 шага до первой рассылки</CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
+            <div className="rounded-lg border p-4 bg-zinc-50">
+              <div className="font-medium">1. Подключите почту</div>
+              <p className="text-zinc-500 text-xs mt-1">Gmail/Yandex или 1 клик Ethereal (бесплатно, без пароля) — проверьте тестовым письмом.</p>
+              <Link href="/dashboard/mailbox"><Button variant="outline" size="sm" className="mt-3">Настроить →</Button></Link>
+            </div>
+            <div className="rounded-lg border p-4 bg-zinc-50">
+              <div className="font-medium">2. Загрузите список</div>
+              <p className="text-zinc-500 text-xs mt-1">Вставьте через запятую или таблицу из Excel (email, name, company) — превью покажет ошибки.</p>
+              <Link href="/dashboard/lists"><Button variant="outline" size="sm" className="mt-3">Импорт →</Button></Link>
+            </div>
+            <div className="rounded-lg border p-4 bg-zinc-50">
+              <div className="font-medium">3. Создайте шаблон и кампанию</div>
+              <p className="text-zinc-500 text-xs mt-1">Spintax {"{Привет|Здравствуйте}"} + AI-уникализация, задержка 30-90с, лимит 300/день.</p>
+              <Link href="/dashboard/templates"><Button variant="outline" size="sm" className="mt-3">Шаблон →</Button></Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>

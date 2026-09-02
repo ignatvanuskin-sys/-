@@ -29,6 +29,8 @@ export default function MailboxPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [testTo, setTestTo] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     fetch("/api/mailbox").then((r) => r.json()).then((d) => {
@@ -61,30 +63,80 @@ export default function MailboxPage() {
   }
 
   async function save() {
+    if (!form.login || !form.password || !form.fromEmail) {
+      setErr("Заполните логин, пароль и From email");
+      return;
+    }
+    setSaving(true);
     setMsg(null);
     setErr(null);
     const res = await fetch("/api/mailbox", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     const data = await res.json();
+    setSaving(false);
     if (!res.ok) setErr(data.error);
-    else setMsg("Сохранено");
+    else setMsg("✅ Сохранено — пароль зашифрован (AES-256-GCM) и сохранён в БД");
+  }
+
+  async function createEthereal() {
+    setMsg(null);
+    setErr(null);
+    setMsg("Создаём Ethereal тест-ящик...");
+    const res = await fetch("/api/mailbox", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ethereal: true, fromName: form.fromName || "Ethereal Test", fromEmail: form.fromEmail || undefined }),
+    });
+    const data = await res.json();
+    if (!res.ok) setErr(data.error);
+    else {
+      setMsg(data.info || "Ethereal ящик создан — тестовые письма бесплатны, смотрите логи");
+      // reload
+      fetch("/api/mailbox").then((r) => r.json()).then((d) => {
+        if (d.mailbox) {
+          setForm({
+            smtpHost: d.mailbox.smtpHost,
+            smtpPort: d.mailbox.smtpPort,
+            secure: d.mailbox.secure,
+            login: d.mailbox.login,
+            password: "",
+            fromName: d.mailbox.fromName,
+            fromEmail: d.mailbox.fromEmail,
+            replyTo: d.mailbox.replyTo || "",
+          });
+          setTestTo(d.mailbox.fromEmail);
+        }
+      });
+    }
   }
 
   async function test() {
+    if (!testTo || !testTo.includes("@")) {
+      setErr("Укажите корректный email для теста");
+      return;
+    }
+    setTesting(true);
     setMsg(null);
     setErr(null);
     const res = await fetch("/api/mailbox/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: testTo }) });
     const data = await res.json();
+    setTesting(false);
     if (!res.ok) setErr(data.error);
-    else setMsg("Тестовое письмо отправлено на " + testTo);
+    else {
+      if (data.etherealPreviewUrl) setMsg(`Тестовое письмо отправлено! Ethereal preview: ${data.etherealPreviewUrl}`);
+      else setMsg("Тестовое письмо отправлено на " + testTo + " — проверьте inbox и спам");
+    }
   }
 
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">Почтовый ящик</h1>
+      <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+        <b>Подсказка:</b> Для Gmail нужен <b>App Password</b> (16 символов), не обычный пароль. Включите 2FA → myaccount.google.com → Пароли приложений. Для теста без Gmail — нажмите «Ethereal» ниже (бесплатно, 1 клик).
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>SMTP подключение</CardTitle>
-          <CardDescription>Подключите ящик, с которого будут уходить письма. Пароль хранится зашифрованным.</CardDescription>
+          <CardDescription>Подключите ящик, с которого будут уходить письма. Пароль шифруется AES-256-GCM (ENCRYPTION_KEY) и не хранится в открытом виде.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -137,18 +189,34 @@ export default function MailboxPage() {
             <Input value={form.replyTo} onChange={(e) => setForm({ ...form, replyTo: e.target.value })} />
           </div>
 
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          {msg && <p className="text-sm text-green-600">{msg}</p>}
+          {err && <div className="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700 break-all">{err}</div>}
+          {msg && (
+            <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800 break-all">
+              {msg.includes("https://") ? (
+                <>
+                  {msg.split("https://")[0]}
+                  <a href={`https://${msg.split("https://")[1]}`} target="_blank" className="underline font-medium">
+                    https://{msg.split("https://")[1]}
+                  </a>
+                </>
+              ) : (
+                msg
+              )}
+            </div>
+          )}
 
-          <div className="flex gap-2">
-            <Button onClick={save}>Сохранить</Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={save} disabled={saving}>{saving ? "Сохраняем..." : "Сохранить"}</Button>
+            <Button variant="outline" onClick={createEthereal} disabled={saving}>🆓 Создать бесплатный тест-ящик (Ethereal)</Button>
           </div>
+          <p className="text-xs text-zinc-500">Ethereal — бесплатный тестовый SMTP от Nodemailer. Не требует Gmail. Письма показываются по preview-ссылке (откройте её в новой вкладке). Идеально для проверки шаблона/уникализации без трат и без спам-риска.</p>
 
           <div className="border-t pt-4 space-y-2">
             <Label>Тестовое письмо себе</Label>
+            <p className="text-xs text-zinc-500">Отправьте себе письмо, чтобы проверить, что SMTP работает. Для Ethereal — укажите любой email, письмо появится по preview-ссылке.</p>
             <div className="flex gap-2">
               <Input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="test@example.com" />
-              <Button variant="outline" onClick={test}>Отправить тест</Button>
+              <Button variant="outline" onClick={test} disabled={testing}>{testing ? "Отправляем..." : "Отправить тест"}</Button>
             </div>
           </div>
         </CardContent>

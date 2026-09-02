@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { campaigns, campaignRecipients, recipients, suppressionList, mailboxes, templates, globalSettings } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq } from "@/lib/db";
 import { parseSpintax } from "@/lib/spintax";
 import { renderPlaceholders } from "@/lib/placeholders";
 import { mockParaphrase, paraphraseWithRetry } from "@/lib/ai";

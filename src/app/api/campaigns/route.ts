@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, isDbConfigured } from "@/lib/db";
 import { campaigns, campaignRecipients, recipients } from "@/lib/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq } from "@/lib/db";
 
 export async function GET() {
   if (!isDbConfigured()) return NextResponse.json({ campaigns: [] });
