@@ -8,7 +8,7 @@ function getSecret() {
   return new TextEncoder().encode(s);
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const isProtected = path.startsWith("/dashboard") || path.startsWith("/api");
   const isApiAuthUnprotected = path.startsWith("/api/auth") || path.startsWith("/api/unsubscribe") || path.startsWith("/api/inngest");
@@ -38,6 +38,8 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 }
+
+export const middleware = proxy;
 
 export const config = {
   matcher: ["/dashboard/:path*", "/api/:path*"],
