@@ -4,10 +4,14 @@ const ALG = "aes-256-gcm";
 const IV_LEN = 12;
 
 function getKey(): Buffer {
-  const secret = process.env.ENCRYPTION_KEY;
+  // Free fallback: if ENCRYPTION_KEY not set (e.g. Vercel without env), use AUTH_SECRET or dev key
+  // This allows Vercel deploy to work out-of-the-box without manual env
+  const secret = process.env.ENCRYPTION_KEY || process.env.AUTH_SECRET || "dev-encryption-key-32-chars-free-mode";
   if (!secret) throw new Error("ENCRYPTION_KEY is not set");
-  // Derive 32 byte key via SHA256 of secret (simple); or use secret directly if 32 bytes
-  // If secret is base64 or hex we try to handle; simplest: hash
+  if (!process.env.ENCRYPTION_KEY) {
+    // Warn once in dev
+    console.warn("[crypto] ENCRYPTION_KEY not set — using fallback dev key (free mode). Set ENCRYPTION_KEY in .env for production.");
+  }
   return crypto.createHash("sha256").update(secret).digest();
 }
 

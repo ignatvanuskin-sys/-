@@ -17,10 +17,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
-    "@electric-sql/pglite": "^0.5.8",
     "@neondatabase/serverless": "^1.1.0",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
@@ -31,7 +29,6 @@
     "next": "15.3.5",
     "nodemailer": "^9.1.0",
     "pg": "^8.23.0",
-    "pg-mem": "^3.0.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.6.0",
