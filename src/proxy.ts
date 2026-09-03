@@ -11,7 +11,7 @@ function getSecret() {
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const isProtected = path.startsWith("/dashboard") || path.startsWith("/api");
-  const isApiAuthUnprotected = path.startsWith("/api/auth") || path.startsWith("/api/unsubscribe") || path.startsWith("/api/inngest");
+  const isApiAuthUnprotected = path.startsWith("/api/auth") || path.startsWith("/api/unsubscribe") || path.startsWith("/api/inngest") || path.startsWith("/api/init-db");
   if (isApiAuthUnprotected) return NextResponse.next();
 
   // allow login page itself
